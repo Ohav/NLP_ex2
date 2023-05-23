@@ -82,7 +82,16 @@ def lm_wrapper(in_word_index, out_word_index, num_to_word_embedding, dimensions,
 
     # Construct the data batch and run you backpropogation implementation
     ### YOUR CODE HERE
-    raise NotImplementedError
+    curr_indices = np.random.choice(len(in_word_index), BATCH_SIZE)
+    curr_in_word_indices = np.array(in_word_index)[curr_indices]
+    curr_out_word_indices = np.array(out_word_index)[curr_indices]
+    data = np.array(num_to_word_embedding)[curr_in_word_indices]
+    out_vectors = []
+    for index in curr_out_word_indices:
+        out_vectors.append(int_to_one_hot(index, output_dim))
+
+    labels = np.vstack(out_vectors)
+    cost, grad = forward_backward_prop(data, labels, params, dimensions)
     ### END YOUR CODE
 
     cost /= BATCH_SIZE
@@ -90,7 +99,7 @@ def lm_wrapper(in_word_index, out_word_index, num_to_word_embedding, dimensions,
     return cost, grad
 
 
-def eval_neural_lm(eval_data_path):
+def eval_neural_lm(eval_data_path, params, dimensions):
     """
     Evaluate perplexity (use dev set when tuning and test at the end)
     """
@@ -101,7 +110,26 @@ def eval_neural_lm(eval_data_path):
 
     perplexity = 0
     ### YOUR CODE HERE
-    raise NotImplementedError
+    num_to_word_embedding = load_vocab_embeddings()
+    for i in range(num_of_examples):
+        prob = forward(num_to_word_embedding[in_word_index[i]], out_word_index[i], params, dimensions)
+        perplexity+=np.log2(prob)
+    perplexity = 2**(-perplexity/num_of_examples)
+
+    # for snetence in S_dev:
+    #     curr_s = None
+    #     for word in snetence:
+
+    #         prob = forward(num_to_word_embedding[in_word_index[total_idx]], out_word_index[total_idx], params, dimensions)
+    #         total_idx +=1
+    #         if not curr_s:
+    #             curr_s = prob
+    #         else:
+    #             curr_s*= prob
+    #     sentence_pre=  2**(-np.log(curr_s)/len(snetence)) 
+    #     perplexity+=sentence_pre
+    # perplexity /= len(S_dev)
+    # raise NotImplementedError
     ### END YOUR CODE
 
     return perplexity
@@ -143,17 +171,17 @@ if __name__ == "__main__":
     # run SGD
     params = sgd(
             lambda vec: lm_wrapper(in_word_index, out_word_index, num_to_word_embedding, dimensions, vec),
-            params, LEARNING_RATE, NUM_OF_SGD_ITERATIONS, None, True, 1000)
+            params, LEARNING_RATE, NUM_OF_SGD_ITERATIONS, None, True, 10)
 
     print(f"training took {time.time() - startTime} seconds")
 
     # Evaluate perplexity with dev-data
-    perplexity = eval_neural_lm('data/lm/ptb-dev.txt')
+    perplexity = eval_neural_lm('data/lm/ptb-dev.txt', params, dimensions)
     print(f"dev perplexity : {perplexity}")
 
     # Evaluate perplexity with test-data (only at test time!)
     if os.path.exists('data/lm/ptb-test.txt'):
-        perplexity = eval_neural_lm('data/lm/ptb-test.txt')
+        perplexity = eval_neural_lm('data/lm/ptb-test.txt', params, dimensions)
         print(f"test perplexity : {perplexity}")
     else:
         print("test perplexity will be evaluated only at test time!")
