@@ -99,7 +99,7 @@ def lm_wrapper(in_word_index, out_word_index, num_to_word_embedding, dimensions,
     return cost, grad
 
 
-def eval_neural_lm(eval_data_path, params, dimensions):
+def eval_neural_lm(eval_data_path):
     """
     Evaluate perplexity (use dev set when tuning and test at the end)
     """
@@ -116,20 +116,6 @@ def eval_neural_lm(eval_data_path, params, dimensions):
         perplexity+=np.log2(prob)
     perplexity = 2**(-perplexity/num_of_examples)
 
-    # for snetence in S_dev:
-    #     curr_s = None
-    #     for word in snetence:
-
-    #         prob = forward(num_to_word_embedding[in_word_index[total_idx]], out_word_index[total_idx], params, dimensions)
-    #         total_idx +=1
-    #         if not curr_s:
-    #             curr_s = prob
-    #         else:
-    #             curr_s*= prob
-    #     sentence_pre=  2**(-np.log(curr_s)/len(snetence)) 
-    #     perplexity+=sentence_pre
-    # perplexity /= len(S_dev)
-    # raise NotImplementedError
     ### END YOUR CODE
 
     return perplexity
@@ -176,12 +162,18 @@ if __name__ == "__main__":
     print(f"training took {time.time() - startTime} seconds")
 
     # Evaluate perplexity with dev-data
-    perplexity = eval_neural_lm('data/lm/ptb-dev.txt', params, dimensions)
+    perplexity = eval_neural_lm('data/lm/ptb-dev.txt')
     print(f"dev perplexity : {perplexity}")
+    
+    ##q 4b
+    perplexity = eval_neural_lm('shakespeare_for_perplexity.txt')
+    print(f"shakespeare perplexity : {perplexity}")
+    perplexity = eval_neural_lm('wikipedia_for_perplexity.txt')
+    print(f"wikipedia perplexity : {perplexity}")
 
     # Evaluate perplexity with test-data (only at test time!)
     if os.path.exists('data/lm/ptb-test.txt'):
-        perplexity = eval_neural_lm('data/lm/ptb-test.txt', params, dimensions)
+        perplexity = eval_neural_lm('data/lm/ptb-test.txt')
         print(f"test perplexity : {perplexity}")
     else:
         print("test perplexity will be evaluated only at test time!")

@@ -19,19 +19,29 @@ def docs_to_indices(docs, word_to_num):
 
 
 def load_dataset(fname):
+    if fname in ['shakespeare_for_perplexity.txt', 'wikipedia_for_perplexity.txt']:
+        from nltk import pos_tag, word_tokenize
     docs = []
-    with open(fname) as fd:
+    with open(fname, encoding='utf8') as fd:
         cur = []
         for line in fd:
+            # line = line.replace(' ', '\t')
             # new sentence on -DOCSTART- or blank line
             if re.match(r"-DOCSTART-.+", line) or (len(line.strip()) == 0):
                 if len(cur) > 0:
                     docs.append(cur)
                 cur = []
             else:  # read in tokens
-                cur.append(line.strip().split("\t",1))
+                if fname in ['shakespeare_for_perplexity.txt', 'wikipedia_for_perplexity.txt']:
+                    tupled = pos_tag(word_tokenize(line))
+                    cur.append([[t[0], t[1]] for t in tupled])
+                else:
+                    cur.append(line.strip().split("\t",1))
         # flush running buffer
-        docs.append(cur)
+        if fname in ['shakespeare_for_perplexity.txt', 'wikipedia_for_perplexity.txt']:
+            docs =  cur
+        else:
+            docs.append(cur)
     return docs
 
 
